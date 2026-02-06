@@ -1,4 +1,4 @@
-# 📊 Proyecto de Minería de Datos  
+# PROYECTO DE MINERIA DE DATOS  
 ## Predicción de Deserción Estudiantil  
 
 **Autor:** Allison Castro  
