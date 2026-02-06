@@ -1,12 +1,8 @@
-# ================================
-# PROYECTO DE MINERÍA DE DATOS
-# PREDICCIÓN DE DESERCIÓN ESTUDIANTIL
-# AUTORA: ALLISON CASTRO
-# ================================
 
 import streamlit as st
 import pandas as pd
-import numpy as np
+import joblib
+
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -16,36 +12,38 @@ from sklearn.metrics import (
 )
 
 # ----------------- CONFIGURACIÓN -----------------
-st.set_page_config(page_title="Deserción Estudiantil", layout="centered")
+st.set_page_config(
+    page_title="Predicción de Deserción Estudiantil",
+    layout="centered"
+)
+
+# ----------------- CARGA DE MODELO -----------------
+modelo = joblib.load("modelo_desercion.pkl")
+scaler = joblib.load("scaler.pkl")
 
 # ----------------- TÍTULOS -----------------
-st.title("📊 Proyecto de Minería de Datos")
-st.subheader("Predicción de Deserción Estudiantil")
+st.title("Proyecto de Minería de Datos")
+st.subheader("Predicción de Riesgo de Deserción Estudiantil")
 st.write("👩‍🎓 **Allison Castro**")
 
 # ----------------- CARGA DE DATOS -----------------
 @st.cache_data
-def cargar_datos(): 
+def cargar_datos():
     df = pd.read_excel("REPORTE_RECORD_ESTUDIANTIL_ANONIMIZADO.xlsx")
-    df = df[['ESTUDIANTE', 'PROMEDIO', 'ASISTENCIA', 'ESTADO']].copy()
+    df = df[['ESTUDIANTE', 'PROMEDIO', 'ASISTENCIA']].copy()
 
-    # Conversión de tipos
     df['PROMEDIO'] = df['PROMEDIO'].astype(str).str.replace(',', '.').astype(float)
     df['ASISTENCIA'] = df['ASISTENCIA'].astype(float)
 
-    # Variable objetivo: DESERCIÓN
-    df['DESERCION'] = np.where(
-        (df['PROMEDIO'] < 7) | (df['ASISTENCIA'] < 70),
-        1,  # DESERTA
-        0   # NO DESERTA
-    )
+    # Variable dependiente (regla académica)
+    df['DESERCION'] = ((df['PROMEDIO'] < 7) | (df['ASISTENCIA'] < 70)).astype(int)
 
     return df.dropna()
 
 df = cargar_datos()
 
 # ----------------- ANÁLISIS EXPLORATORIO -----------------
-st.header("🔍 Análisis Exploratorio de Datos")
+st.header("Análisis Exploratorio de Datos")
 
 st.write("Vista general del dataset:")
 st.dataframe(df.head())
@@ -53,15 +51,17 @@ st.dataframe(df.head())
 st.write("Estadísticas descriptivas:")
 st.dataframe(df[['PROMEDIO', 'ASISTENCIA']].describe())
 
-st.write("Distribución de deserción:")
+st.write("Distribución de la variable objetivo (Deserción):")
 st.bar_chart(df['DESERCION'].value_counts())
 
-# ----------------- MÉTRICAS DEL MODELO (REGLAS) -----------------
-st.header("📈 Evaluación del Modelo")
+# ----------------- EVALUACIÓN DEL MODELO -----------------
+st.header("Evaluación del Modelo")
 
-# Predicción usando reglas
+X = df[['PROMEDIO', 'ASISTENCIA']]
 y_real = df['DESERCION']
-y_pred = df['DESERCION']  # reglas perfectas porque se basan en la definición
+
+X_scaled = scaler.transform(X)
+y_pred = modelo.predict(X_scaled)
 
 accuracy = accuracy_score(y_real, y_pred)
 precision = precision_score(y_real, y_pred)
@@ -88,25 +88,17 @@ st.dataframe(
     )
 )
 
-# ----------------- IMPORTANCIA DE VARIABLES -----------------
-st.header("⭐ Importancia de Variables")
-
-importancia = pd.DataFrame({
-    "Variable": ["PROMEDIO", "ASISTENCIA"],
-    "Importancia": [0.5, 0.5]
-})
-
-st.bar_chart(importancia.set_index("Variable"))
+# ----------------- INTERPRETACIÓN -----------------
+st.header("🧠 Interpretación")
 
 st.write("""
-**Interpretación:**
-- Un promedio menor a 7 incrementa el riesgo de deserción.
-- Una asistencia menor al 70% incrementa el riesgo de deserción.
-Ambas variables tienen la misma importancia en la predicción.
+- Un promedio bajo incrementa la probabilidad de deserción.
+- Una asistencia baja incrementa la probabilidad de deserción.
+- El modelo de regresión logística aprende esta relación a partir de los datos históricos.
 """)
 
 # ----------------- PREDICCIÓN INTERACTIVA -----------------
-st.header("🧠 Predicción de Riesgo de Deserción")
+st.header("🔮 Predicción de Riesgo de Deserción")
 
 promedio = st.number_input(
     "Ingrese el promedio del estudiante",
@@ -122,8 +114,25 @@ asistencia = st.number_input(
     step=1.0
 )
 
-if st.button("🔮 Predecir"):
-    if promedio < 7 or asistencia < 70:
-        st.error("⚠️ El estudiante **ESTÁ en riesgo de DESERCIÓN**")
+if st.button("📌 Predecir"):
+    entrada = pd.DataFrame(
+        [[promedio, asistencia]],
+        columns=['PROMEDIO', 'ASISTENCIA']
+    )
+
+    entrada_scaled = scaler.transform(entrada)
+
+    prediccion = modelo.predict(entrada_scaled)[0]
+    probabilidad = modelo.predict_proba(entrada_scaled)[0][1]
+
+    if prediccion == 1:
+        st.error(
+            f"⚠️ **ALTO RIESGO DE DESERCIÓN**\n\n"
+            f"Probabilidad estimada: **{probabilidad*100:.2f}%**"
+        )
     else:
-        st.success("✅ El estudiante **NO está en riesgo de deserción**")
+        st.success(
+            f"✅ **BAJO RIESGO DE DESERCIÓN**\n\n"
+            f"Probabilidad estimada: **{probabilidad*100:.2f}%**"
+        )
+
