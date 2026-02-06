@@ -7,7 +7,7 @@
 
 ---
 
-## 🧠 Descripción del Proyecto
+## Proyecto
 
 La deserción estudiantil representa uno de los principales desafíos que enfrentan las instituciones de educación superior. Identificar de manera temprana a los estudiantes con riesgo de abandono permite implementar estrategias de intervención oportunas.
 
@@ -15,13 +15,13 @@ En este proyecto se aplican técnicas de minería de datos para desarrollar un m
 
 ---
 
-## 🎯 Objetivo General
+## Objetivo General
 
 Desarrollar un sistema de predicción de deserción estudiantil aplicando técnicas de minería de datos, que permita identificar estudiantes en riesgo y visualizar los resultados mediante una interfaz gráfica interactiva.
 
 ---
 
-## 🎯 Objetivos Específicos
+## Objetivos Específicos
 
 - Realizar un análisis exploratorio del conjunto de datos.
 - Identificar las variables más relevantes para la predicción de deserción.
@@ -46,7 +46,7 @@ Variables principales utilizadas:
 
 ---
 
-## 🔍 Metodología
+## Metodología
 
 El desarrollo del proyecto sigue la metodología **CRISP-DM**, abordando las siguientes fases:
 
@@ -59,7 +59,7 @@ El desarrollo del proyecto sigue la metodología **CRISP-DM**, abordando las sig
 
 ---
 
-## 🤖 Modelo de Machine Learning
+## Modelo de Machine Learning
 
 Se implementó un modelo de **Regresión Logística** para la predicción de deserción estudiantil.
 
@@ -83,7 +83,7 @@ El modelo fue evaluado utilizando las siguientes métricas:
 
 ---
 
-## 🖥️ Aplicación Streamlit
+## Aplicación Streamlit
 
 La aplicación permite:
 - Visualizar el análisis exploratorio de los datos.
